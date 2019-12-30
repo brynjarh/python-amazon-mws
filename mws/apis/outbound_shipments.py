@@ -4,6 +4,8 @@ Amazon MWS Fulfillment Outbound Shipments API
 from __future__ import absolute_import
 # import warnings
 
+import json
+
 from ..mws import MWS
 from .. import utils
 from ..decorators import next_token_action
@@ -22,7 +24,7 @@ class OutboundShipments(MWS):
         'ListAllFulfillmentOrders',
     ]
 
-    def get_fulfillment_preview(self, destination_address, items, marketplace_id=None, shipping_speed_categories=None):
+    def get_fulfillment_preview(self, destination_address, items, marketplace_id=None):
         """
         Returns a list of fulfillment order previews based on shipping criteria that you specify.
 
@@ -30,21 +32,21 @@ class OutboundShipments(MWS):
         http://docs.developer.amazonservices.com/en_US/fba_outbound/FBAOutbound_GetFulfillmentPreview.html
 
         :param marketplace_id:
-        :param shipping_speed_categories: Optional
         :param destination_address: Required
         :param items: Required
         """
-        if shipping_speed_categories is None:
-            shipping_speed_categories = ['Standard', 'Expedited', 'Priority', 'ScheduledDelivey']
 
         data = {
             "Action": "GetFulfillmentPreview",
-            "MarketplaceId": marketplace_id,
         }
 
-        data.update(utils.enumerate_param("ShippingSpeedCategories", shipping_speed_categories or []))
+        if marketplace_id:
+            data.update({"MarketplaceId": marketplace_id})
+
         data.update(utils.enumerate_keyed_param("Items.member", items or []))
         data.update(utils.dict_keyed_param("Address", destination_address or {}))
+
+        print(json.dumps(data, indent=2))
 
         return self.make_request(data)
 

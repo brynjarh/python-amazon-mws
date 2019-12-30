@@ -22,15 +22,31 @@ class OutboundShipments(MWS):
         'ListAllFulfillmentOrders',
     ]
 
-    # TODO: Complete these methods
-    def get_fulfillment_preview(self):
+    def get_fulfillment_preview(self, destination_address, items, marketplace_id=None, shipping_speed_categories=None):
         """
         Returns a list of fulfillment order previews based on shipping criteria that you specify.
 
         Docs:
         http://docs.developer.amazonservices.com/en_US/fba_outbound/FBAOutbound_GetFulfillmentPreview.html
+
+        :param marketplace_id:
+        :param shipping_speed_categories: Optional
+        :param destination_address: Required
+        :param items: Required
         """
-        raise NotImplementedError
+        if shipping_speed_categories is None:
+            shipping_speed_categories = ['Standard', 'Expedited', 'Priority', 'ScheduledDelivey']
+
+        data = {
+            "Action": "GetFulfillmentPreview",
+            "MarketplaceId": marketplace_id,
+        }
+
+        data.update(utils.enumerate_param("ShippingSpeedCategories", shipping_speed_categories or []))
+        data.update(utils.enumerate_keyed_param("Items.member", items or []))
+        data.update(utils.dict_keyed_param("Address", destination_address or {}))
+
+        return self.make_request(data)
 
     def create_fulfillment_order(self, marketplace_id = None, seller_fulfillment_order_id = None, fulfillment_action = None,
                             displayable_order_id = None, displayable_order_datetime = None, displayable_order_comment = None,
